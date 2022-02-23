@@ -4,5 +4,8 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/TCPTest.unity
+    guid: 0906f1b1d18c58f4db94b6435aaf4b89
   m_configObjects: {}

@@ -21,6 +21,8 @@ public class OpenFIle : MonoBehaviour
         }
     }
 
+	public Sprite testSprite;
+
     public void OpenSingleFile()
 	{
 		//string targetPath = @"C:\Users\PC\Desktop\TestImages";
@@ -31,7 +33,9 @@ public class OpenFIle : MonoBehaviour
 		byteData = FileBrowser.Instance.CurrentOpenSingleFileData;
 		//Typical use-cases
 		Sprite selectedSprite = byteData.CTToSprite(); //returns a Texture of the data
-
+		float x = selectedSprite.pivot.x;
+		float y = selectedSprite.pivot.y;
+		image.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 720 * x / y);
 		image.sprite = selectedSprite;
 	}
 }

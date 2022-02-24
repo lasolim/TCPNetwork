@@ -34,7 +34,7 @@ public class Server : MonoBehaviour
     {
         t.text = "¼­¹ö";
         sendBtn.SetActive(true);
-        m_ThrdtcpListener = new Thread(new ThreadStart(ListenForIncommingRequests));
+        m_ThrdtcpListener = new Thread(ListenForIncommingRequests);
         m_ThrdtcpListener.IsBackground = true;
         m_ThrdtcpListener.Start();
     }
@@ -70,13 +70,11 @@ public class Server : MonoBehaviour
 
     void OnApplicationQuit()
     {
-        m_ThrdtcpListener.Abort();
+        if (m_TcpListener == null) return;
 
-        if (m_TcpListener != null)
-        {
-            m_TcpListener.Stop();
-            m_TcpListener = null;
-        }
+        m_ThrdtcpListener.Abort();
+        m_TcpListener.Stop();
+        m_TcpListener = null;
     }
 
     void ListenForIncommingRequests()
@@ -150,7 +148,7 @@ public class Server : MonoBehaviour
                 NetworkStream stream = client.GetStream();
                 if (stream.CanWrite)
                 {
-                    byte[] serverMessageAsByteArray = Encoding.Default.GetBytes(message);
+                    //byte[] serverMessageAsByteArray = Encoding.Default.GetBytes(message);
                     stream.Write(OpenFIle.instance.byteData, 0, OpenFIle.instance.byteData.Length);
                 }
             }

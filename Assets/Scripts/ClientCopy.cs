@@ -22,13 +22,6 @@ public class ClientCopy : MonoBehaviour
 	private TcpClient m_Client;
 	private Thread m_ThrdClientReceive;
 
- //   void Start()
- //   {
-	//	t.text = "클라이언트";
-	//	sendBtn.SetActive(true);
-	//	ConnectToTcpServer();
-	//}
-
     public void ClientBtn()
 	{
 		t.text = "클라이언트";
@@ -38,20 +31,29 @@ public class ClientCopy : MonoBehaviour
 
 	void Update()
 	{
-		if (incommingData == null) return;
+		if (incommingData != null)
+		{
 
-		Sprite recvSprite = incommingData.CTToSprite();
-		recvImage.sprite = recvSprite;
+			Sprite recvSprite = incommingData.CTToSprite();
+			float x = recvSprite.pivot.x;
+			float y = recvSprite.pivot.y;
+			recvImage.rectTransform.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, 720 * x / y);
+			recvImage.sprite = recvSprite;
 
-		Texture2D tex = incommingData.CTToTexture();
-		byte[] jpgdata = tex.CTToJPG();
-		FileBrowser.Instance.CurrentSaveFileData = jpgdata;
-		SaveFile();
+			Texture2D tex = incommingData.CTToTexture();
+			byte[] jpgdata = tex.CTToPNG();
+			FileBrowser.Instance.CurrentSaveFileData = jpgdata;
+			SaveFile();
+
+			incommingData = null;
+		}
+
+
 	}
 
 	public void SaveFile()
 	{
-		string path = FileBrowser.Instance.SaveFile("MyFile", "jpg");
+		string path = FileBrowser.Instance.SaveFile("MyFile", "png");
 		Debug.Log("Save file: " + path);
 	}
 
@@ -62,10 +64,9 @@ public class ClientCopy : MonoBehaviour
 
 	void OnApplicationQuit()
 	{
-		m_ThrdClientReceive.Abort();
-
 		if (m_Client != null)
 		{
+			m_ThrdClientReceive.Abort();
 			m_Client.Close();
 			m_Client = null;
 		}

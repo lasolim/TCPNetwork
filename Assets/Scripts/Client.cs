@@ -1,51 +1,45 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 using System.Net.Sockets;
-using System.Net;
-using System.IO;
 using System;
-using Crosstales;
-using Crosstales.FB;
-using System.Text;
 using System.Threading;
 
 public class Client : MonoBehaviour
 {
-	public string m_Ip = "127.0.0.1";
-	public int m_Port = 50001;
-	private TcpClient m_Client;
-	private Thread m_ThrdClientReceive;
+	public GameObject serverBtn;
+	public GameObject clinetBtn;
+	public GameObject sendBtn;
+	public GameObject openBtn;
 
-	//void Start()
-	//{
-	//	ConnectToTcpServer();
-	//}
-
+	public string ip = "192.168.0.26";
+	public int port = 50001;
+	private TcpClient tcp_Client;
+	private Thread thrd_receive;
 	public void ClientBtn()
-    {
+	{
 		ConnectToTcpServer();
 	}
 
-	//void Update()
-	//{
-	//	SendMessage("클라이언트에서 보내는 값");
-	//}
-
-	public void SendBtn()
-    {
-		clientSendMessage("클라이언트에서 보내는 값");
+	void Update()
+	{
+		if (incommingData != null)
+		{
+			Na_FileBrowser.instance.ShowImage(incommingData);
+            Na_FileBrowser.instance.SaveFile(incommingData);
+            incommingData = null;
+		}
 	}
 
 	void OnApplicationQuit()
 	{
-		m_ThrdClientReceive.Abort();
+		if (thrd_receive != null)
+			thrd_receive.Abort();
 
-		if (m_Client != null)
+		if (tcp_Client != null)
 		{
-			m_Client.Close();
-			m_Client = null;
+			tcp_Client.Close();
+			tcp_Client = null;
 		}
 	}
 
@@ -53,62 +47,65 @@ public class Client : MonoBehaviour
 	{
 		try
 		{
-			m_ThrdClientReceive = new Thread(new ThreadStart(ListenForData));
-			m_ThrdClientReceive.IsBackground = true;
-			m_ThrdClientReceive.Start();
+			tcp_Client = new TcpClient(ip, port);
+
+			thrd_receive = new Thread(new ThreadStart(ListenForData));
+			thrd_receive.IsBackground = true;
+			thrd_receive.Start();
+
+			Na_FileBrowser.instance.t.text = "클라이언트";
+
+			serverBtn.SetActive(false);
+			clinetBtn.SetActive(false);
+			openBtn.SetActive(false);
+			sendBtn.SetActive(false);
 		}
 		catch (Exception ex)
 		{
 			Debug.Log(ex);
+			Na_FileBrowser.instance.t.text = "서버 없음";
 		}
 	}
 
+	byte[] incommingData;
 	void ListenForData()
 	{
 		try
 		{
-			m_Client = new TcpClient(m_Ip, m_Port);
-			Byte[] bytes = new Byte[1024];
+			Byte[] bytes = new Byte[3999999];
 			while (true)
 			{
-				using (NetworkStream stream = m_Client.GetStream())
+				using (NetworkStream stream = tcp_Client.GetStream())
 				{
 					int length;
 
 					while ((length = stream.Read(bytes, 0, bytes.Length)) != 0)
 					{
-						var incommingData = new byte[length];
+						incommingData = new byte[length];
 						Array.Copy(bytes, 0, incommingData, 0, length);
 
-						string serverMessage = Encoding.Default.GetString(incommingData);
-						Debug.Log(serverMessage); // 받은 값
-
+						Debug.Log("데이터 받음"); // 받은 값
 					}
 				}
 			}
 		}
-
 		catch (SocketException ex)
 		{
 			Debug.Log(ex);
 		}
 	}
 
-	void clientSendMessage(string message)
+	void SendImage()
 	{
-		if (m_Client == null)
-		{
-			return;
-		}
+		if (tcp_Client == null) return;
 
 		try
 		{
-			NetworkStream stream = m_Client.GetStream();
+			NetworkStream stream = tcp_Client.GetStream();
 
 			if (stream.CanWrite)
 			{
-				byte[] clientMessageAsByteArray = Encoding.Default.GetBytes(message);
-				stream.Write(clientMessageAsByteArray, 0, clientMessageAsByteArray.Length);
+				stream.Write(Na_FileBrowser.instance.byteData, 0, Na_FileBrowser.instance.byteData.Length);
 			}
 		}
 
@@ -117,5 +114,4 @@ public class Client : MonoBehaviour
 			Debug.Log(ex);
 		}
 	}
-
 }
